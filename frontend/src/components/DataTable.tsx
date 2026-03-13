@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 
 interface Column<T> {
   header: string;
@@ -43,3 +43,4 @@ export function DataTable<T>({ title, data, columns }: DataTableProps<T>) {
     </div>
   );
 }
+

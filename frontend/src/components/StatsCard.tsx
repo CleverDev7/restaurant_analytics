@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 
 interface StatsCardProps {
   label: string;
@@ -15,3 +15,4 @@ export function StatsCard({ label, value, helper }: StatsCardProps) {
     </div>
   );
 }
+

@@ -55,19 +55,21 @@ async function getOrderCount(range: Required<RangeParams>) {
 }
 
 async function getCogs(range: Required<RangeParams>) {
+  const restaurantParam = range.restaurantId ?? null;
   const rows = await prisma.$queryRaw<{ cost: number }[]>`
     SELECT COALESCE(SUM(oi.cost * oi.quantity), 0) as cost
     FROM "OrderItem" oi
     JOIN "Order" o ON oi."orderId" = o.id
     WHERE o."placedAt" BETWEEN ${range.from} AND ${range.to}
       AND o.status != 'CANCELLED'
-      AND (${range.restaurantId ?? null} IS NULL OR o."restaurantId" = ${range.restaurantId ?? null});
+      AND (${restaurantParam}::uuid IS NULL OR o."restaurantId" = ${restaurantParam}::uuid);
   `;
   return toNumber(rows[0]?.cost || 0);
 }
 
 async function getBestSellers(range: Required<RangeParams>): Promise<BestSeller[]> {
   const limit = range.limit ?? 5;
+  const restaurantParam = range.restaurantId ?? null;
   const rows = await prisma.$queryRaw<
     { name: string; revenue: number; quantity: number }[]
   >`
@@ -79,7 +81,7 @@ async function getBestSellers(range: Required<RangeParams>): Promise<BestSeller[
     JOIN "MenuItem" mi ON oi."menuItemId" = mi.id
     WHERE o."placedAt" BETWEEN ${range.from} AND ${range.to}
       AND o.status != 'CANCELLED'
-      AND (${range.restaurantId ?? null} IS NULL OR o."restaurantId" = ${range.restaurantId ?? null})
+      AND (${restaurantParam}::uuid IS NULL OR o."restaurantId" = ${restaurantParam}::uuid)
     GROUP BY mi.name
     ORDER BY revenue DESC
     LIMIT ${limit};
@@ -88,13 +90,14 @@ async function getBestSellers(range: Required<RangeParams>): Promise<BestSeller[
 }
 
 async function getPeakHours(range: Required<RangeParams>): Promise<PeakHour[]> {
+  const restaurantParam = range.restaurantId ?? null;
   const rows = await prisma.$queryRaw<{ hour: string; orders: number }[]>`
     SELECT to_char(date_trunc('hour', o."placedAt"), 'HH24:MI') as hour,
            COUNT(*) as orders
     FROM "Order" o
     WHERE o."placedAt" BETWEEN ${range.from} AND ${range.to}
       AND o.status != 'CANCELLED'
-      AND (${range.restaurantId ?? null} IS NULL OR o."restaurantId" = ${range.restaurantId ?? null})
+      AND (${restaurantParam}::uuid IS NULL OR o."restaurantId" = ${restaurantParam}::uuid)
     GROUP BY date_trunc('hour', o."placedAt")
     ORDER BY hour;
   `;
@@ -102,17 +105,19 @@ async function getPeakHours(range: Required<RangeParams>): Promise<PeakHour[]> {
 }
 
 async function computeInventoryCost(range: Required<RangeParams>) {
+  const restaurantParam = range.restaurantId ?? null;
   const rows = await prisma.$queryRaw<{ cost: number }[]>`
     SELECT COALESCE(SUM(ip.quantity * ip."unitCost"), 0) as cost
     FROM "InventoryPurchase" ip
     WHERE ip."purchasedAt" BETWEEN ${range.from} AND ${range.to}
-      AND (${range.restaurantId ?? null} IS NULL OR ip."restaurantId" = ${range.restaurantId ?? null});
+      AND (${restaurantParam}::uuid IS NULL OR ip."restaurantId" = ${restaurantParam}::uuid);
   `;
   return toNumber(rows[0]?.cost || 0);
 }
 
 async function getStaffPerformance(range: Required<RangeParams>): Promise<StaffPerformance[]> {
   const limit = range.limit ?? 5;
+  const restaurantParam = range.restaurantId ?? null;
   const rows = await prisma.$queryRaw<
     { name: string; orders: number; upsell: number }[]
   >`
@@ -125,7 +130,7 @@ async function getStaffPerformance(range: Required<RangeParams>): Promise<StaffP
       AND o.status != 'CANCELLED'
     LEFT JOIN "Shift" sh ON sh."staffId" = s.id
       AND sh."startedAt" BETWEEN ${range.from} AND ${range.to}
-    WHERE (${range.restaurantId ?? null} IS NULL OR s."restaurantId" = ${range.restaurantId ?? null})
+    WHERE (${restaurantParam}::uuid IS NULL OR s."restaurantId" = ${restaurantParam}::uuid)
     GROUP BY s.name
     ORDER BY orders DESC
     LIMIT ${limit};
@@ -135,6 +140,7 @@ async function getStaffPerformance(range: Required<RangeParams>): Promise<StaffP
 
 async function getCustomerPatterns(range: Required<RangeParams>): Promise<CustomerPattern[]> {
   const limit = range.limit ?? 5;
+  const restaurantParam = range.restaurantId ?? null;
   const rows = await prisma.$queryRaw<
     { name: string; visits: number; avg_ticket: number }[]
   >`
@@ -145,7 +151,7 @@ async function getCustomerPatterns(range: Required<RangeParams>): Promise<Custom
     LEFT JOIN "Customer" c ON c.id = o."customerId"
     WHERE o."placedAt" BETWEEN ${range.from} AND ${range.to}
       AND o.status != 'CANCELLED'
-      AND (${range.restaurantId ?? null} IS NULL OR o."restaurantId" = ${range.restaurantId ?? null})
+      AND (${restaurantParam}::uuid IS NULL OR o."restaurantId" = ${restaurantParam}::uuid)
     GROUP BY COALESCE(c.name, 'Guest')
     ORDER BY visits DESC
     LIMIT ${limit};
