@@ -16,4 +16,4 @@ Monorepo-style setup with `frontend` (Next.js/TypeScript/Tailwind) and `backend`
 
 ## Tech
 - Frontend: Next.js 14, TypeScript, Tailwind CSS, Chart.js via `react-chartjs-2`.
-- Backend: Node.js 20, Express 5, Prisma ORM, PostgreSQL.
+- Backend: Node.js 20, Express 5, PostgreSQL.
