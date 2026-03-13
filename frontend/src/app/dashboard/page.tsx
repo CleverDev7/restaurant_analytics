@@ -1,4 +1,4 @@
-import { ChartPanel } from "@/components/ChartPanel";
+﻿import { ChartPanel } from "@/components/ChartPanel";
 import { DataTable } from "@/components/DataTable";
 import { StatsCard } from "@/components/StatsCard";
 import { fetchAnalyticsOverview } from "@/lib/api";
@@ -11,7 +11,7 @@ export default async function DashboardPage() {
       <div className="flex items-center justify-between">
         <div>
           <p className="text-xs uppercase tracking-[0.35em] text-slate-400">Daily snapshot</p>
-          <h1 className="text-3xl font-semibold text-white">{analytics.date} � Profitability Control</h1>
+          <h1 className="text-3xl font-semibold text-white">{analytics.date} – Profitability Control</h1>
         </div>
         <span className="rounded-full border border-green-400/60 px-3 py-1 text-xs text-green-200">Live</span>
       </div>

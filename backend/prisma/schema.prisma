@@ -9,7 +9,6 @@ generator client {
 }
 
 model Restaurant {
-<<<<<<< ours
   id        String              @id @default(cuid())
   name      String
   timezone  String              @default("America/New_York")
@@ -21,18 +20,6 @@ model Restaurant {
   inventory InventoryPurchase[]
   customers Customer[]
   shifts    Shift[]
-=======
-  id          String   @id @default(cuid())
-  name        String
-  timezone    String   @default("America/New_York")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  staff       Staff[]
-  menuItems   MenuItem[]
-  orders      Order[]
-  inventory   InventoryPurchase[]
-  customers   Customer[]
->>>>>>> theirs
 }
 
 model Staff {
