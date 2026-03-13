@@ -48,9 +48,9 @@ export default async function DashboardPage() {
   ];
 
   const dayParts: DayPart[] = [
-    { name: "Breakfast", value: 40889, percent: 10, color: "bg-sky-100", accent: "bg-sky-500", icon: "🍳" },
-    { name: "Lunch", value: 159510, percent: 40, color: "bg-amber-100", accent: "bg-amber-500", icon: "🥗" },
-    { name: "Dinner", value: 200524, percent: 50, color: "bg-rose-100", accent: "bg-rose-500", icon: "🍖" }
+    { name: "Breakfast", value: 40889, percent: 10, color: "bg-sky-100", accent: "bg-sky-500", icon: "BF" },
+    { name: "Lunch", value: 159510, percent: 40, color: "bg-amber-100", accent: "bg-amber-500", icon: "LN" },
+    { name: "Dinner", value: 200524, percent: 50, color: "bg-rose-100", accent: "bg-rose-500", icon: "DN" }
   ];
 
   const menuItems = bestItems.map((item) => ({
@@ -62,12 +62,12 @@ export default async function DashboardPage() {
   const maxSold = menuItems.reduce((max, item) => Math.max(max, item.sold), 1);
 
   const channels: Channel[] = [
-    { name: "Car hop", value: 13347, color: "#0ea5e9", icon: "🚗", orders: 9 },
-    { name: "Take away", value: 1008, color: "#f59e0b", icon: "🥡", orders: 2 },
-    { name: "Delivery", value: 27941, color: "#10b981", icon: "📦", orders: 14 },
-    { name: "Google", value: 12, color: "#3b82f6", icon: "🟦", orders: 12 },
-    { name: "TripAdvisor", value: 11, color: "#84cc16", icon: "🧭", orders: 11 },
-    { name: "Zomato", value: 11, color: "#ef4444", icon: "🍽️", orders: 11 }
+    { name: "Car hop", value: 13347, color: "#0ea5e9", icon: "CH", orders: 9 },
+    { name: "Take away", value: 1008, color: "#f59e0b", icon: "TA", orders: 2 },
+    { name: "Delivery", value: 27941, color: "#10b981", icon: "DL", orders: 14 },
+    { name: "Google", value: 12, color: "#3b82f6", icon: "G", orders: 12 },
+    { name: "TripAdvisor", value: 11, color: "#84cc16", icon: "TR", orders: 11 },
+    { name: "Zomato", value: 11, color: "#ef4444", icon: "ZO", orders: 11 }
   ];
 
   const quadrants: Quadrant[] = [
@@ -86,7 +86,7 @@ export default async function DashboardPage() {
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">Weekly Sales Report</p>
           <h1 className="mt-2 text-3xl font-semibold text-slate-900">Multi-Restaurant Performance</h1>
-          <p className="text-sm text-slate-500">Updated {overview.date} · Profitability Control</p>
+          <p className="text-sm text-slate-500">Updated {overview.date} - Profitability Control</p>
         </div>
         <div className="flex items-center gap-3">
           <ExportButtons
@@ -139,12 +139,7 @@ export default async function DashboardPage() {
             <KpiCard label="Month to Date" value={currency.format(mtdRevenue)} helper="Net Sales Value" accent="emerald" />
             <KpiCard label="Number Sold" value={numberFmt.format(mtdOrders)} helper="All Locations" accent="amber" />
             <KpiCard label="Total Items" value={numberFmt.format(bestItems.length * 20 + 7)} helper="Menu Count" accent="sky" />
-            <KpiCard
-              label="Menu C.M."
-              value={currency.format(overview.inventoryCost)}
-              helper="Cost of Menu"
-              accent="rose"
-            />
+            <KpiCard label="Menu C.M." value={currency.format(overview.inventoryCost)} helper="Cost of Menu" accent="rose" />
           </div>
 
           <div className="grid gap-3 sm:grid-cols-3">
@@ -161,7 +156,7 @@ export default async function DashboardPage() {
           <div className="card p-5 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold text-slate-900">Sales vs Last Year</h3>
-              <p className="text-sm text-slate-500">Average Checks · Net Sales Value</p>
+              <p className="text-sm text-slate-500">Average Checks / Net Sales Value</p>
             </div>
             <div className="grid gap-4 md:grid-cols-3">
               <ComparisonBlock title="Today vs Last Year" data={todayVsLastYear} color="bg-amber-500" />
@@ -179,7 +174,7 @@ export default async function DashboardPage() {
           <div className="grid gap-4 lg:grid-cols-2">
             <div className="card p-5 space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-slate-900">Menu Mix · Top Items</h3>
+                <h3 className="text-lg font-semibold text-slate-900">Menu Mix - Top Items</h3>
                 <p className="text-xs text-slate-500">CM vs Units Sold</p>
               </div>
               <div className="space-y-3">
@@ -192,7 +187,7 @@ export default async function DashboardPage() {
             <div className="card p-5 space-y-3">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-slate-900">Channels</h3>
-                <p className="text-xs text-slate-500">Value · Orders</p>
+                <p className="text-xs text-slate-500">Value and Orders</p>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {channels.map((channel) => (
@@ -364,17 +359,20 @@ function BarPair({
 }
 
 function DayPartCard({ part }: { part: DayPart }) {
+  const textAccent = part.accent.replace("bg-", "text-");
   return (
     <div className={`rounded-2xl border border-slate-200 p-4 shadow-card ${part.color}`}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <span className="text-2xl">{part.icon}</span>
+          <div className={`h-10 w-10 rounded-full ${part.accent} text-white flex items-center justify-center text-xs font-semibold`}>
+            {part.icon}
+          </div>
           <div>
             <p className="text-sm text-slate-600">Avg. per day</p>
             <p className="text-xl font-semibold text-slate-900">{numberFmt.format(Math.round(part.value / 7))}</p>
           </div>
         </div>
-        <div className={`text-4xl font-semibold ${part.accent.replace("bg-", "text-")}`}>
+        <div className={`text-3xl font-semibold ${textAccent}`}>
           {Math.round(part.value / 1000)}k
         </div>
       </div>
@@ -415,8 +413,11 @@ function MenuItemBar({ item, maxCm, maxSold }: { item: { name: string; cm: numbe
 function ChannelBadge({ channel }: { channel: Channel }) {
   return (
     <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-      <div className="h-9 w-9 flex items-center justify-center rounded-full text-lg" style={{ backgroundColor: channel.color }}>
-        <span className="drop-shadow-sm">{channel.icon}</span>
+      <div
+        className="h-9 w-9 flex items-center justify-center rounded-full text-xs font-semibold text-white"
+        style={{ backgroundColor: channel.color }}
+      >
+        {channel.icon}
       </div>
       <div className="flex-1">
         <p className="text-sm font-semibold text-slate-900">{channel.value.toLocaleString()}</p>
