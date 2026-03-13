@@ -1,5 +1,5 @@
 // Datasource & generator
- datasource db {
+datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
@@ -9,6 +9,19 @@ generator client {
 }
 
 model Restaurant {
+<<<<<<< ours
+  id        String              @id @default(cuid())
+  name      String
+  timezone  String              @default("America/New_York")
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+  staff     Staff[]
+  menuItems MenuItem[]
+  orders    Order[]
+  inventory InventoryPurchase[]
+  customers Customer[]
+  shifts    Shift[]
+=======
   id          String   @id @default(cuid())
   name        String
   timezone    String   @default("America/New_York")
@@ -19,11 +32,11 @@ model Restaurant {
   orders      Order[]
   inventory   InventoryPurchase[]
   customers   Customer[]
-  shifts      Shift[]
+>>>>>>> theirs
 }
 
 model Staff {
-  id           String   @id @default(cuid())
+  id           String     @id @default(cuid())
   name         String
   role         String
   restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
@@ -33,44 +46,44 @@ model Staff {
 }
 
 model Customer {
-  id           String   @id @default(cuid())
+  id           String     @id @default(cuid())
   name         String
-  email        String?  @unique
-  phone        String?  @unique
+  email        String?    @unique
+  phone        String?    @unique
   restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
   restaurantId String
   orders       Order[]
 }
 
 model MenuItem {
-  id           String   @id @default(cuid())
+  id           String      @id @default(cuid())
   name         String
   category     String
-  price        Decimal  @db.Decimal(10,2)
-  cost         Decimal  @db.Decimal(10,2)
-  isActive     Boolean  @default(true)
-  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+  price        Decimal     @db.Decimal(10, 2)
+  cost         Decimal     @db.Decimal(10, 2)
+  isActive     Boolean     @default(true)
+  restaurant   Restaurant  @relation(fields: [restaurantId], references: [id])
   restaurantId String
   orderItems   OrderItem[]
-  createdAt    DateTime @default(now())
+  createdAt    DateTime    @default(now())
 }
 
 model Order {
-  id            String   @id @default(cuid())
-  restaurant    Restaurant @relation(fields: [restaurantId], references: [id])
-  restaurantId  String
-  customer      Customer? @relation(fields: [customerId], references: [id])
-  customerId    String?
-  staff         Staff?    @relation(fields: [staffId], references: [id])
-  staffId       String?
-  status        OrderStatus @default(PLACED)
-  subtotal      Decimal  @db.Decimal(12,2)
-  tax           Decimal  @db.Decimal(12,2)
-  discount      Decimal  @db.Decimal(12,2) @default(0)
-  total         Decimal  @db.Decimal(12,2)
-  serviceType   ServiceType @default(DINE_IN)
-  placedAt      DateTime @default(now())
-  orderItems    OrderItem[]
+  id           String      @id @default(cuid())
+  restaurant   Restaurant  @relation(fields: [restaurantId], references: [id])
+  restaurantId String
+  customer     Customer?   @relation(fields: [customerId], references: [id])
+  customerId   String?
+  staff        Staff?      @relation(fields: [staffId], references: [id])
+  staffId      String?
+  status       OrderStatus @default(PLACED)
+  subtotal     Decimal     @db.Decimal(12, 2)
+  tax          Decimal     @db.Decimal(12, 2)
+  discount     Decimal     @default(0) @db.Decimal(12, 2)
+  total        Decimal     @db.Decimal(12, 2)
+  serviceType  ServiceType @default(DINE_IN)
+  placedAt     DateTime    @default(now())
+  orderItems   OrderItem[]
 }
 
 model OrderItem {
@@ -80,30 +93,30 @@ model OrderItem {
   menuItem   MenuItem @relation(fields: [menuItemId], references: [id])
   menuItemId String
   quantity   Int
-  price      Decimal @db.Decimal(10,2)
-  cost       Decimal @db.Decimal(10,2)
+  price      Decimal  @db.Decimal(10, 2)
+  cost       Decimal  @db.Decimal(10, 2)
 }
 
 model InventoryPurchase {
-  id            String   @id @default(cuid())
-  restaurant    Restaurant @relation(fields: [restaurantId], references: [id])
-  restaurantId  String
-  itemName      String
-  quantity      Float
-  unitCost      Decimal @db.Decimal(10,2)
-  purchasedAt   DateTime @default(now())
+  id           String     @id @default(cuid())
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+  restaurantId String
+  itemName     String
+  quantity     Float
+  unitCost     Decimal    @db.Decimal(10, 2)
+  purchasedAt  DateTime   @default(now())
 }
 
 model Shift {
-  id            String   @id @default(cuid())
-  staff         Staff    @relation(fields: [staffId], references: [id])
+  id            String     @id @default(cuid())
+  staff         Staff      @relation(fields: [staffId], references: [id])
   staffId       String
   restaurant    Restaurant @relation(fields: [restaurantId], references: [id])
   restaurantId  String
   startedAt     DateTime
   endedAt       DateTime?
-  ordersHandled Int       @default(0)
-  upsellRate    Float     @default(0)
+  ordersHandled Int        @default(0)
+  upsellRate    Float      @default(0)
 }
 
 enum OrderStatus {

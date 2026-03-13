@@ -4,6 +4,9 @@ import helmet from "helmet";
 import morgan from "morgan";
 import { env } from "./config/env";
 import { router as analyticsRouter } from "./routes/analytics";
+import { router as ordersRouter } from "./routes/orders";
+import { router as menuItemsRouter } from "./routes/menuItems";
+import { router as inventoryRouter } from "./routes/inventory";
 
 export function createServer() {
   const app = express();
@@ -15,6 +18,9 @@ export function createServer() {
 
   app.get("/health", (_req, res) => res.json({ status: "ok" }));
   app.use("/api/analytics", analyticsRouter);
+  app.use("/api/orders", ordersRouter);
+  app.use("/api/menu-items", menuItemsRouter);
+  app.use("/api/inventory", inventoryRouter);
 
   app.use((req, res) => {
     res.status(404).json({ message: "Not Found", path: req.path });

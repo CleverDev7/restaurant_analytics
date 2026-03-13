@@ -1,5 +1,12 @@
 import { prisma } from "../prisma/client";
-import { AnalyticsOverview } from "../types/analytics";
+import {
+  AnalyticsOverview,
+  BestSeller,
+  CustomerPattern,
+  DailySales,
+  PeakHour,
+  StaffPerformance
+} from "../types/analytics";
 
 function toNumber(value: any): number {
   if (value === null || value === undefined) return 0;
@@ -39,7 +46,7 @@ async function getCogs(start: Date, end: Date) {
   return toNumber(rows[0]?.cost || 0);
 }
 
-async function getBestSellers(start: Date, end: Date) {
+async function getBestSellers(start: Date, end: Date, limit = 5): Promise<BestSeller[]> {
   const rows = await prisma.$queryRaw<
     { name: string; revenue: number; quantity: number }[]
   >`
@@ -53,12 +60,12 @@ async function getBestSellers(start: Date, end: Date) {
       AND o.status != 'CANCELLED'
     GROUP BY mi.name
     ORDER BY revenue DESC
-    LIMIT 5;
+    LIMIT ${limit};
   `;
   return rows.map((r) => ({ ...r, revenue: toNumber(r.revenue), quantity: toNumber(r.quantity) }));
 }
 
-async function getPeakHours(start: Date, end: Date) {
+async function getPeakHours(start: Date, end: Date): Promise<PeakHour[]> {
   const rows = await prisma.$queryRaw<{ hour: string; orders: number }[]>`
     SELECT to_char(date_trunc('hour', o."placedAt"), 'HH24:MI') as hour,
            COUNT(*) as orders
@@ -71,7 +78,7 @@ async function getPeakHours(start: Date, end: Date) {
   return rows.map((r) => ({ hour: r.hour, orders: toNumber(r.orders) }));
 }
 
-async function getInventoryCost(start: Date, end: Date) {
+async function computeInventoryCost(start: Date, end: Date) {
   const rows = await prisma.$queryRaw<{ cost: number }[]>`
     SELECT COALESCE(SUM(ip.quantity * ip."unitCost"), 0) as cost
     FROM "InventoryPurchase" ip
@@ -80,7 +87,7 @@ async function getInventoryCost(start: Date, end: Date) {
   return toNumber(rows[0]?.cost || 0);
 }
 
-async function getStaffPerformance(start: Date, end: Date) {
+async function getStaffPerformance(start: Date, end: Date, limit = 5): Promise<StaffPerformance[]> {
   const rows = await prisma.$queryRaw<
     { name: string; orders: number; upsell: number }[]
   >`
@@ -92,12 +99,12 @@ async function getStaffPerformance(start: Date, end: Date) {
     LEFT JOIN "Shift" sh ON sh."staffId" = s.id AND sh."startedAt" BETWEEN ${start} AND ${end}
     GROUP BY s.name
     ORDER BY orders DESC
-    LIMIT 5;
+    LIMIT ${limit};
   `;
   return rows.map((r) => ({ name: r.name, ordersHandled: toNumber(r.orders), upsellRate: Number(r.upsell) }));
 }
 
-async function getCustomerPatterns(start: Date, end: Date) {
+async function getCustomerPatterns(start: Date, end: Date, limit = 5): Promise<CustomerPattern[]> {
   const rows = await prisma.$queryRaw<
     { name: string; visits: number; avg_ticket: number }[]
   >`
@@ -110,12 +117,70 @@ async function getCustomerPatterns(start: Date, end: Date) {
       AND o.status != 'CANCELLED'
     GROUP BY COALESCE(c.name, 'Guest')
     ORDER BY visits DESC
-    LIMIT 5;
+    LIMIT ${limit};
   `;
   return rows.map((r) => ({ customer: r.name, visits: toNumber(r.visits), avgTicket: toNumber(r.avg_ticket) }));
 }
 
 export const analyticsService = {
+  async getDailySales(date = new Date()): Promise<DailySales> {
+    const { start, end } = dayBounds(date);
+    const [sales, orders, cogs, inventoryCost] = await Promise.all([
+      getSalesTotal(start, end),
+      getOrderCount(start, end),
+      getCogs(start, end),
+      computeInventoryCost(start, end)
+    ]);
+    const profitMargin = sales === 0 ? 0 : (sales - cogs - inventoryCost) / sales;
+    const avgTicket = orders === 0 ? 0 : sales / orders;
+    return {
+      date: start.toISOString().slice(0, 10),
+      sales,
+      orders,
+      avgTicket,
+      profitMargin,
+      cogs,
+      inventoryCost
+    };
+  },
+
+  async getBestSellingItems(date = new Date(), limit = 5) {
+    const { start, end } = dayBounds(date);
+    return getBestSellers(start, end, limit);
+  },
+
+  async getPeakHours(date = new Date()) {
+    const { start, end } = dayBounds(date);
+    return getPeakHours(start, end);
+  },
+
+  async getProfitMargins(date = new Date()) {
+    const { start, end } = dayBounds(date);
+    const [sales, cogs, inventoryCost] = await Promise.all([
+      getSalesTotal(start, end),
+      getCogs(start, end),
+      computeInventoryCost(start, end)
+    ]);
+    const profitMargin = sales === 0 ? 0 : (sales - cogs - inventoryCost) / sales;
+    return { date: start.toISOString().slice(0, 10), sales, cogs, inventoryCost, profitMargin };
+  },
+
+  async getInventoryCost(date = new Date()) {
+    const { start, end } = dayBounds(date);
+    const cost = await computeInventoryCost(start, end);
+    return { date: start.toISOString().slice(0, 10), inventoryCost: cost };
+  },
+
+  async getStaffPerformance(date = new Date(), limit = 5) {
+    const { start, end } = dayBounds(date);
+    return getStaffPerformance(start, end, limit);
+  },
+
+  async getCustomerSpendingPatterns(date = new Date(), limit = 5) {
+    const { start, end } = dayBounds(date);
+    return getCustomerPatterns(start, end, limit);
+  },
+
   async getDailyOverview(date = new Date()): Promise<AnalyticsOverview> {
     const { start, end } = dayBounds(date);
 
@@ -126,7 +191,7 @@ export const analyticsService = {
         getCogs(start, end),
         getBestSellers(start, end),
         getPeakHours(start, end),
-        getInventoryCost(start, end),
+        computeInventoryCost(start, end),
         getStaffPerformance(start, end),
         getCustomerPatterns(start, end)
       ]);
