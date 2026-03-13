@@ -2,6 +2,9 @@ export type BestSeller = { name: string; revenue: number; quantity: number };
 export type PeakHour = { hour: string; orders: number };
 export type StaffPerformance = { name: string; ordersHandled: number; upsellRate: number };
 export type CustomerPattern = { customer: string; visits: number; avgTicket: number };
+export type MenuPerformance = { name: string; revenue: number; quantity: number; profit: number; marginRate: number };
+export type CustomerTop = { customer: string; totalSpend: number; visits: number; avgTicket: number };
+export type CustomerSegmentSummary = { segment: string; customers: number; totalSpend: number; avgTicket: number };
 
 export type DailySales = {
   date: string;

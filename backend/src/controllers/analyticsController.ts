@@ -87,3 +87,53 @@ export async function getCustomerSpending(req: Request, res: Response) {
     res.status(400).json({ message: err.message });
   }
 }
+
+export async function getMenuPerformance(req: Request, res: Response) {
+  try {
+    const range = parseRange(req);
+    const data = await analyticsService.getMenuPerformance(range);
+    res.json(data);
+  } catch (err: any) {
+    res.status(400).json({ message: err.message });
+  }
+}
+
+export async function getHighProfitLowSales(req: Request, res: Response) {
+  try {
+    const range = parseRange(req);
+    const data = await analyticsService.getHighProfitLowSales(range);
+    res.json(data);
+  } catch (err: any) {
+    res.status(400).json({ message: err.message });
+  }
+}
+
+export async function getLowProfitHighSales(req: Request, res: Response) {
+  try {
+    const range = parseRange(req);
+    const data = await analyticsService.getLowProfitHighSales(range);
+    res.json(data);
+  } catch (err: any) {
+    res.status(400).json({ message: err.message });
+  }
+}
+
+export async function getTopCustomers(req: Request, res: Response) {
+  try {
+    const range = parseRange(req);
+    const data = await analyticsService.getTopCustomers(range);
+    res.json(data);
+  } catch (err: any) {
+    res.status(400).json({ message: err.message });
+  }
+}
+
+export async function getCustomerSegments(req: Request, res: Response) {
+  try {
+    const range = parseRange(req);
+    const data = await analyticsService.getCustomerSegments(range);
+    res.json(data);
+  } catch (err: any) {
+    res.status(400).json({ message: err.message });
+  }
+}

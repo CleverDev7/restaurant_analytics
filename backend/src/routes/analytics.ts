@@ -7,7 +7,12 @@ import {
   getProfitMargins,
   getInventoryCost,
   getStaffPerformance,
-  getCustomerSpending
+  getCustomerSpending,
+  getMenuPerformance,
+  getHighProfitLowSales,
+  getLowProfitHighSales,
+  getTopCustomers,
+  getCustomerSegments
 } from "../controllers/analyticsController";
 
 export const router = Router();
@@ -20,3 +25,8 @@ router.get("/profit-margins", getProfitMargins);
 router.get("/inventory-cost", getInventoryCost);
 router.get("/staff-performance", getStaffPerformance);
 router.get("/customer-spending", getCustomerSpending);
+router.get("/menu-performance", getMenuPerformance);
+router.get("/high-profit-low-sales", getHighProfitLowSales);
+router.get("/low-profit-high-sales", getLowProfitHighSales);
+router.get("/top-customers", getTopCustomers);
+router.get("/customer-segments", getCustomerSegments);

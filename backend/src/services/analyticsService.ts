@@ -5,13 +5,23 @@ import {
   CustomerPattern,
   DailySales,
   PeakHour,
-  StaffPerformance
+  StaffPerformance,
+  MenuPerformance,
+  CustomerSegmentSummary,
+  CustomerTop
 } from "../types/analytics";
 
 export type RangeParams = {
   from?: Date;
   to?: Date;
-  restaurantId?: string;
+  restaurantId?: string | null;
+  limit?: number;
+};
+
+type RangeNormalized = {
+  from: Date;
+  to: Date;
+  restaurantId: string | null;
   limit?: number;
 };
 
@@ -22,17 +32,24 @@ function toNumber(value: any): number {
   return Number(value);
 }
 
-function normalizeRange(range: RangeParams) {
-  if (range.from && range.to) return range as Required<RangeParams>;
+function normalizeRange(range: RangeParams): RangeNormalized {
+  if (range.from && range.to) {
+    return {
+      from: range.from,
+      to: range.to,
+      restaurantId: range.restaurantId ?? null,
+      limit: range.limit
+    };
+  }
   const now = new Date();
   const start = new Date(now);
   start.setHours(0, 0, 0, 0);
   const end = new Date(now);
   end.setHours(23, 59, 59, 999);
-  return { from: start, to: end, restaurantId: range.restaurantId, limit: range.limit } as Required<RangeParams>;
+  return { from: start, to: end, restaurantId: range.restaurantId ?? null, limit: range.limit };
 }
 
-async function getSalesTotal(range: Required<RangeParams>) {
+async function getSalesTotal(range: RangeNormalized) {
   const result = await prisma.order.aggregate({
     _sum: { total: true },
     where: {
@@ -44,7 +61,7 @@ async function getSalesTotal(range: Required<RangeParams>) {
   return toNumber(result._sum.total);
 }
 
-async function getOrderCount(range: Required<RangeParams>) {
+async function getOrderCount(range: RangeNormalized) {
   return prisma.order.count({
     where: {
       placedAt: { gte: range.from, lte: range.to },
@@ -54,7 +71,7 @@ async function getOrderCount(range: Required<RangeParams>) {
   });
 }
 
-async function getCogs(range: Required<RangeParams>) {
+async function getCogs(range: RangeNormalized) {
   const restaurantParam = range.restaurantId ?? null;
   const rows = await prisma.$queryRaw<{ cost: number }[]>`
     SELECT COALESCE(SUM(oi.cost * oi.quantity), 0) as cost
@@ -67,7 +84,7 @@ async function getCogs(range: Required<RangeParams>) {
   return toNumber(rows[0]?.cost || 0);
 }
 
-async function getBestSellers(range: Required<RangeParams>): Promise<BestSeller[]> {
+async function getBestSellers(range: RangeNormalized): Promise<BestSeller[]> {
   const limit = range.limit ?? 5;
   const restaurantParam = range.restaurantId ?? null;
   const rows = await prisma.$queryRaw<
@@ -89,7 +106,7 @@ async function getBestSellers(range: Required<RangeParams>): Promise<BestSeller[
   return rows.map((r) => ({ ...r, revenue: toNumber(r.revenue), quantity: toNumber(r.quantity) }));
 }
 
-async function getPeakHours(range: Required<RangeParams>): Promise<PeakHour[]> {
+async function getPeakHours(range: RangeNormalized): Promise<PeakHour[]> {
   const restaurantParam = range.restaurantId ?? null;
   const rows = await prisma.$queryRaw<{ hour: string; orders: number }[]>`
     SELECT to_char(date_trunc('hour', o."placedAt"), 'HH24:MI') as hour,
@@ -104,7 +121,7 @@ async function getPeakHours(range: Required<RangeParams>): Promise<PeakHour[]> {
   return rows.map((r) => ({ hour: r.hour, orders: toNumber(r.orders) }));
 }
 
-async function computeInventoryCost(range: Required<RangeParams>) {
+async function computeInventoryCost(range: RangeNormalized) {
   const restaurantParam = range.restaurantId ?? null;
   const rows = await prisma.$queryRaw<{ cost: number }[]>`
     SELECT COALESCE(SUM(ip.quantity * ip."unitCost"), 0) as cost
@@ -115,7 +132,7 @@ async function computeInventoryCost(range: Required<RangeParams>) {
   return toNumber(rows[0]?.cost || 0);
 }
 
-async function getStaffPerformance(range: Required<RangeParams>): Promise<StaffPerformance[]> {
+async function getStaffPerformance(range: RangeNormalized): Promise<StaffPerformance[]> {
   const limit = range.limit ?? 5;
   const restaurantParam = range.restaurantId ?? null;
   const rows = await prisma.$queryRaw<
@@ -138,7 +155,7 @@ async function getStaffPerformance(range: Required<RangeParams>): Promise<StaffP
   return rows.map((r) => ({ name: r.name, ordersHandled: toNumber(r.orders), upsellRate: Number(r.upsell) }));
 }
 
-async function getCustomerPatterns(range: Required<RangeParams>): Promise<CustomerPattern[]> {
+async function getCustomerPatterns(range: RangeNormalized): Promise<CustomerPattern[]> {
   const limit = range.limit ?? 5;
   const restaurantParam = range.restaurantId ?? null;
   const rows = await prisma.$queryRaw<
@@ -157,6 +174,113 @@ async function getCustomerPatterns(range: Required<RangeParams>): Promise<Custom
     LIMIT ${limit};
   `;
   return rows.map((r) => ({ customer: r.name, visits: toNumber(r.visits), avgTicket: toNumber(r.avg_ticket) }));
+}
+
+async function getMenuPerformance(range: RangeNormalized): Promise<MenuPerformance[]> {
+  const restaurantParam = range.restaurantId ?? null;
+  const rows = await prisma.$queryRaw<
+    { name: string; revenue: number; quantity: number; profit: number }[]
+  >`
+    SELECT mi.name,
+           COALESCE(SUM(oi.price * oi.quantity), 0)      AS revenue,
+           COALESCE(SUM((oi.price - oi.cost) * oi.quantity), 0) AS profit,
+           COALESCE(SUM(oi.quantity), 0)                 AS quantity
+    FROM "OrderItem" oi
+    JOIN "Order" o ON oi."orderId" = o.id
+    JOIN "MenuItem" mi ON mi.id = oi."menuItemId"
+    WHERE o."placedAt" BETWEEN ${range.from} AND ${range.to}
+      AND o.status != 'CANCELLED'
+      AND (${restaurantParam}::uuid IS NULL OR o."restaurantId" = ${restaurantParam}::uuid)
+    GROUP BY mi.name
+    ORDER BY revenue DESC;
+  `;
+  return rows.map((r) => ({
+    name: r.name,
+    revenue: toNumber(r.revenue),
+    quantity: toNumber(r.quantity),
+    profit: toNumber(r.profit),
+    marginRate: toNumber(r.revenue) === 0 ? 0 : toNumber(r.profit) / toNumber(r.revenue)
+  }));
+}
+
+async function getHighProfitLowSales(range: RangeNormalized, maxQty = 20): Promise<MenuPerformance[]> {
+  const perf = await getMenuPerformance(range);
+  return perf
+    .filter((p) => p.quantity <= maxQty)
+    .sort((a, b) => b.profit - a.profit)
+    .slice(0, range.limit ?? 5);
+}
+
+async function getLowProfitHighSales(range: RangeNormalized, minQty = 30, maxMargin = 0.18): Promise<MenuPerformance[]> {
+  const perf = await getMenuPerformance(range);
+  return perf
+    .filter((p) => p.quantity >= minQty && p.marginRate <= maxMargin)
+    .sort((a, b) => b.quantity - a.quantity)
+    .slice(0, range.limit ?? 5);
+}
+
+async function getTopCustomers(range: RangeNormalized): Promise<CustomerTop[]> {
+  const limit = range.limit ?? 5;
+  const restaurantParam = range.restaurantId ?? null;
+  const rows = await prisma.$queryRaw<
+    { name: string; visits: number; total_spend: number; avg_ticket: number }[]
+  >`
+    SELECT COALESCE(c.name, 'Guest') as name,
+           COUNT(o.id) as visits,
+           COALESCE(SUM(o.total), 0) as total_spend,
+           COALESCE(AVG(o.total), 0) as avg_ticket
+    FROM "Order" o
+    LEFT JOIN "Customer" c ON c.id = o."customerId"
+    WHERE o."placedAt" BETWEEN ${range.from} AND ${range.to}
+      AND o.status != 'CANCELLED'
+      AND (${restaurantParam}::uuid IS NULL OR o."restaurantId" = ${restaurantParam}::uuid)
+    GROUP BY COALESCE(c.name, 'Guest')
+    ORDER BY total_spend DESC
+    LIMIT ${limit};
+  `;
+  return rows.map((r) => ({
+    customer: r.name,
+    visits: toNumber(r.visits),
+    totalSpend: toNumber(r.total_spend),
+    avgTicket: toNumber(r.avg_ticket)
+  }));
+}
+
+async function getCustomerSegments(range: RangeNormalized): Promise<CustomerSegmentSummary[]> {
+  const restaurantParam = range.restaurantId ?? null;
+  const rows = await prisma.$queryRaw<
+    { segment: string; customers: number; total_spend: number; avg_ticket: number }[]
+  >`
+    WITH customer_totals AS (
+      SELECT COALESCE(c.name, 'Guest') as name,
+             COUNT(o.id) as visits,
+             SUM(o.total) as total_spend,
+             AVG(o.total) as avg_ticket
+      FROM "Order" o
+      LEFT JOIN "Customer" c ON c.id = o."customerId"
+      WHERE o."placedAt" BETWEEN ${range.from} AND ${range.to}
+        AND o.status != 'CANCELLED'
+        AND (${restaurantParam}::uuid IS NULL OR o."restaurantId" = ${restaurantParam}::uuid)
+      GROUP BY COALESCE(c.name, 'Guest')
+    )
+    SELECT CASE
+             WHEN total_spend >= 300 THEN 'VIP'
+             WHEN visits >= 5 THEN 'Loyal'
+             WHEN visits = 1 THEN 'New'
+             ELSE 'Regular'
+           END as segment,
+           COUNT(*) as customers,
+           COALESCE(SUM(total_spend), 0) as total_spend,
+           COALESCE(AVG(avg_ticket), 0) as avg_ticket
+    FROM customer_totals
+    GROUP BY segment;
+  `;
+  return rows.map((r) => ({
+    segment: r.segment,
+    customers: toNumber(r.customers),
+    totalSpend: toNumber(r.total_spend),
+    avgTicket: toNumber(r.avg_ticket)
+  }));
 }
 
 export const analyticsService = {
@@ -224,12 +348,37 @@ export const analyticsService = {
     return getCustomerPatterns(normalized);
   },
 
+  async getMenuPerformance(range: RangeParams = {}) {
+    const normalized = normalizeRange(range);
+    return getMenuPerformance(normalized);
+  },
+
+  async getHighProfitLowSales(range: RangeParams = {}) {
+    const normalized = normalizeRange(range);
+    return getHighProfitLowSales(normalized);
+  },
+
+  async getLowProfitHighSales(range: RangeParams = {}) {
+    const normalized = normalizeRange(range);
+    return getLowProfitHighSales(normalized);
+  },
+
+  async getTopCustomers(range: RangeParams = {}) {
+    const normalized = normalizeRange(range);
+    return getTopCustomers(normalized);
+  },
+
+  async getCustomerSegments(range: RangeParams = {}) {
+    const normalized = normalizeRange(range);
+    return getCustomerSegments(normalized);
+  },
+
   async getDailyOverview(date = new Date(), restaurantId?: string): Promise<AnalyticsOverview> {
     const from = new Date(date);
     from.setHours(0, 0, 0, 0);
     const to = new Date(date);
     to.setHours(23, 59, 59, 999);
-    const range: Required<RangeParams> = { from, to, restaurantId, limit: 5 };
+    const range: RangeNormalized = { from, to, restaurantId: restaurantId ?? null, limit: 5 };
 
     const [sales, ordersCount, cogs, bestSellers, peakHours, inventoryCost, staffPerformance, customerPatterns] =
       await Promise.all([
