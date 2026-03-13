@@ -16,10 +16,10 @@ export function DataTable<T>({ title, data, columns }: DataTableProps<T>) {
   return (
     <div className="card p-5 overflow-x-auto">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-lg font-semibold text-white">{title}</h3>
+        <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
       </div>
-      <table className="min-w-full text-sm text-left text-slate-200">
-        <thead className="text-xs uppercase text-slate-400 border-b border-slate-700">
+      <table className="min-w-full text-sm text-left text-slate-800">
+        <thead className="text-xs uppercase text-slate-500 border-b border-slate-200">
           <tr>
             {columns.map((col, idx) => (
               <th key={idx} className="py-2" style={{ width: col.width }}>
@@ -30,7 +30,7 @@ export function DataTable<T>({ title, data, columns }: DataTableProps<T>) {
         </thead>
         <tbody>
           {data.map((row, idx) => (
-            <tr key={idx} className="border-b border-slate-800/60">
+            <tr key={idx} className="border-b border-slate-100">
               {columns.map((col, colIdx) => (
                 <td key={colIdx} className="py-2">
                   {col.accessor(row)}

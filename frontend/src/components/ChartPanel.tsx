@@ -37,18 +37,18 @@ export function ChartPanel<T extends object>({
   return (
     <div className="card p-5">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-lg font-semibold text-white">{title}</h3>
+        <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
       </div>
       <div style={{ width: "100%", height }}>
         <ResponsiveContainer>
           {kind === "line" ? (
             <LineChart data={data}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.2)" />
-              <XAxis dataKey={xKey} tick={{ fill: "#cbd5e1", fontSize: 12 }} stroke="#475569" />
-              <YAxis tick={{ fill: "#cbd5e1", fontSize: 12 }} stroke="#475569" />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.35)" />
+              <XAxis dataKey={xKey} tick={{ fill: "#475569", fontSize: 12 }} stroke="#cbd5e1" />
+              <YAxis tick={{ fill: "#475569", fontSize: 12 }} stroke="#cbd5e1" />
               <Tooltip
-                contentStyle={{ backgroundColor: "#0f172a", border: "1px solid #334155", color: "#e2e8f0" }}
-                labelStyle={{ color: "#cbd5e1" }}
+                contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #cbd5e1", color: "#0f172a" }}
+                labelStyle={{ color: "#475569" }}
               />
               {series.map((s) => (
                 <Line
@@ -65,12 +65,12 @@ export function ChartPanel<T extends object>({
             </LineChart>
           ) : (
             <BarChart data={data}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.2)" />
-              <XAxis dataKey={xKey} tick={{ fill: "#cbd5e1", fontSize: 12 }} stroke="#475569" />
-              <YAxis tick={{ fill: "#cbd5e1", fontSize: 12 }} stroke="#475569" />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.35)" />
+              <XAxis dataKey={xKey} tick={{ fill: "#475569", fontSize: 12 }} stroke="#cbd5e1" />
+              <YAxis tick={{ fill: "#475569", fontSize: 12 }} stroke="#cbd5e1" />
               <Tooltip
-                contentStyle={{ backgroundColor: "#0f172a", border: "1px solid #334155", color: "#e2e8f0" }}
-                labelStyle={{ color: "#cbd5e1" }}
+                contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #cbd5e1", color: "#0f172a" }}
+                labelStyle={{ color: "#475569" }}
               />
               {series.map((s) => (
                 <Bar key={s.name} dataKey={s.dataKey} name={s.name} fill={s.color} radius={[6, 6, 0, 0]} />

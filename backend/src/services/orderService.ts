@@ -89,7 +89,7 @@ export const orderService = {
     }
   },
 
-  async listOrders() {
+  async listOrders(restaurantId: string) {
     const res = await query(
       `SELECT o.*, 
               s.name as staff_name, 
@@ -107,9 +107,10 @@ export const orderService = {
        LEFT JOIN "Customer" c ON o."customerId" = c.id
        JOIN "OrderItem" oi ON oi."orderId" = o.id
        JOIN "MenuItem" mi ON mi.id = oi."menuItemId"
-       WHERE o.status != 'CANCELLED'
+       WHERE o.status != 'CANCELLED' AND o."restaurantId" = $1
        GROUP BY o.id, s.name, c.name
-       ORDER BY o."placedAt" DESC`
+       ORDER BY o."placedAt" DESC`,
+      [restaurantId]
     );
     return res.rows;
   }

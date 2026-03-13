@@ -8,6 +8,7 @@ import { router as ordersRouter } from "./routes/orders";
 import { router as menuItemsRouter } from "./routes/menuItems";
 import { router as inventoryRouter } from "./routes/inventory";
 import { startSchedulers } from "./jobs/scheduler";
+import { router as authRouter } from "./routes/auth";
 
 export function createServer() {
   const app = express();
@@ -18,6 +19,7 @@ export function createServer() {
   app.use(morgan("dev"));
 
   app.get("/health", (_req, res) => res.json({ status: "ok" }));
+  app.use("/api/auth", authRouter);
   app.use("/api/analytics", analyticsRouter);
   app.use("/api/orders", ordersRouter);
   app.use("/api/menu-items", menuItemsRouter);

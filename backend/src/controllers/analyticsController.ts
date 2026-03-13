@@ -13,14 +13,13 @@ function parseRange(req: Request) {
 }
 
 export async function getOverview(req: Request, res: Response) {
-  const { restaurant_id: restaurantId } = req.query;
-  const overview = await analyticsService.getDailyOverview(new Date(), restaurantId as string | undefined);
+  const overview = await analyticsService.getDailyOverview(new Date(), req.user?.restaurantId);
   res.json(overview);
 }
 
 export async function getDailySales(req: Request, res: Response) {
   try {
-    const range = parseRange(req);
+    const range = { ...parseRange(req), restaurantId: req.user?.restaurantId };
     const data = await analyticsService.getDailySales(range);
     res.json(data);
   } catch (err: any) {
@@ -30,7 +29,7 @@ export async function getDailySales(req: Request, res: Response) {
 
 export async function getBestItems(req: Request, res: Response) {
   try {
-    const range = parseRange(req);
+    const range = { ...parseRange(req), restaurantId: req.user?.restaurantId };
     const data = await analyticsService.getBestSellingItems(range);
     res.json(data);
   } catch (err: any) {
@@ -40,7 +39,7 @@ export async function getBestItems(req: Request, res: Response) {
 
 export async function getPeakHours(req: Request, res: Response) {
   try {
-    const range = parseRange(req);
+    const range = { ...parseRange(req), restaurantId: req.user?.restaurantId };
     const data = await analyticsService.getPeakHours(range);
     res.json(data);
   } catch (err: any) {
@@ -50,7 +49,7 @@ export async function getPeakHours(req: Request, res: Response) {
 
 export async function getProfitMargins(req: Request, res: Response) {
   try {
-    const range = parseRange(req);
+    const range = { ...parseRange(req), restaurantId: req.user?.restaurantId };
     const data = await analyticsService.getProfitMargins(range);
     res.json(data);
   } catch (err: any) {
@@ -60,7 +59,7 @@ export async function getProfitMargins(req: Request, res: Response) {
 
 export async function getInventoryCost(req: Request, res: Response) {
   try {
-    const range = parseRange(req);
+    const range = { ...parseRange(req), restaurantId: req.user?.restaurantId };
     const data = await analyticsService.getInventoryCost(range);
     res.json(data);
   } catch (err: any) {
@@ -70,7 +69,7 @@ export async function getInventoryCost(req: Request, res: Response) {
 
 export async function getStaffPerformance(req: Request, res: Response) {
   try {
-    const range = parseRange(req);
+    const range = { ...parseRange(req), restaurantId: req.user?.restaurantId };
     const data = await analyticsService.getStaffPerformance(range);
     res.json(data);
   } catch (err: any) {
@@ -80,7 +79,7 @@ export async function getStaffPerformance(req: Request, res: Response) {
 
 export async function getCustomerSpending(req: Request, res: Response) {
   try {
-    const range = parseRange(req);
+    const range = { ...parseRange(req), restaurantId: req.user?.restaurantId };
     const data = await analyticsService.getCustomerSpendingPatterns(range);
     res.json(data);
   } catch (err: any) {
@@ -90,7 +89,7 @@ export async function getCustomerSpending(req: Request, res: Response) {
 
 export async function getMenuPerformance(req: Request, res: Response) {
   try {
-    const range = parseRange(req);
+    const range = { ...parseRange(req), restaurantId: req.user?.restaurantId };
     const data = await analyticsService.getMenuPerformance(range);
     res.json(data);
   } catch (err: any) {
@@ -100,7 +99,7 @@ export async function getMenuPerformance(req: Request, res: Response) {
 
 export async function getHighProfitLowSales(req: Request, res: Response) {
   try {
-    const range = parseRange(req);
+    const range = { ...parseRange(req), restaurantId: req.user?.restaurantId };
     const data = await analyticsService.getHighProfitLowSales(range);
     res.json(data);
   } catch (err: any) {
@@ -110,7 +109,7 @@ export async function getHighProfitLowSales(req: Request, res: Response) {
 
 export async function getLowProfitHighSales(req: Request, res: Response) {
   try {
-    const range = parseRange(req);
+    const range = { ...parseRange(req), restaurantId: req.user?.restaurantId };
     const data = await analyticsService.getLowProfitHighSales(range);
     res.json(data);
   } catch (err: any) {
@@ -120,7 +119,7 @@ export async function getLowProfitHighSales(req: Request, res: Response) {
 
 export async function getTopCustomers(req: Request, res: Response) {
   try {
-    const range = parseRange(req);
+    const range = { ...parseRange(req), restaurantId: req.user?.restaurantId };
     const data = await analyticsService.getTopCustomers(range);
     res.json(data);
   } catch (err: any) {
@@ -130,7 +129,7 @@ export async function getTopCustomers(req: Request, res: Response) {
 
 export async function getCustomerSegments(req: Request, res: Response) {
   try {
-    const range = parseRange(req);
+    const range = { ...parseRange(req), restaurantId: req.user?.restaurantId };
     const data = await analyticsService.getCustomerSegments(range);
     res.json(data);
   } catch (err: any) {

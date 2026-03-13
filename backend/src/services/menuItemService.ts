@@ -12,8 +12,11 @@ export const menuItemService = {
     return res.rows[0];
   },
 
-  async listMenuItems() {
-    const res = await query(`SELECT * FROM "MenuItem" ORDER BY "createdAt" DESC`);
+  async listMenuItems(restaurantId: string) {
+    const res = await query(
+      `SELECT * FROM "MenuItem" WHERE "restaurantId" = $1 ORDER BY "createdAt" DESC`,
+      [restaurantId]
+    );
     return res.rows;
   }
 };

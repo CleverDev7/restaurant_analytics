@@ -1,4 +1,4 @@
-﻿const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:4000/api";
 
 export type BestSeller = { name: string; revenue: number; quantity: number };
 export type PeakHour = { hour: string; orders: number };
@@ -33,6 +33,7 @@ async function safeFetch<T>(path: string, fallback: T): Promise<T> {
     if (!res.ok) throw new Error("Failed request");
     return (await res.json()) as T;
   } catch (error) {
+    console.warn("[api] falling back for", path, error instanceof Error ? error.message : error);
     return fallback;
   }
 }

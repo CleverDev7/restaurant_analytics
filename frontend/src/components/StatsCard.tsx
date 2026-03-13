@@ -9,9 +9,9 @@ interface StatsCardProps {
 export function StatsCard({ label, value, helper }: StatsCardProps) {
   return (
     <div className="card p-5">
-      <p className="text-xs uppercase tracking-[0.25em] text-slate-400">{label}</p>
-      <p className="mt-2 text-3xl font-semibold text-white">{value}</p>
-      {helper && <p className="mt-1 text-sm text-slate-400">{helper}</p>}
+      <p className="text-xs uppercase tracking-[0.25em] text-slate-500">{label}</p>
+      <p className="mt-2 text-3xl font-semibold text-slate-900">{value}</p>
+      {helper && <p className="mt-1 text-sm text-slate-500">{helper}</p>}
     </div>
   );
 }

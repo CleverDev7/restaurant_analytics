@@ -14,9 +14,11 @@ import {
   getTopCustomers,
   getCustomerSegments
 } from "../controllers/analyticsController";
+import { requireAuth } from "../middleware/auth";
 
 export const router = Router();
 
+router.use(requireAuth);
 router.get("/overview", getOverview);
 router.get("/daily-sales", getDailySales);
 router.get("/best-items", getBestItems);

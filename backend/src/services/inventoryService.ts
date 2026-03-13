@@ -12,8 +12,11 @@ export const inventoryService = {
     return res.rows[0];
   },
 
-  async listInventory() {
-    const res = await query(`SELECT * FROM "InventoryPurchase" ORDER BY "purchasedAt" DESC`);
+  async listInventory(restaurantId: string) {
+    const res = await query(
+      `SELECT * FROM "InventoryPurchase" WHERE "restaurantId" = $1 ORDER BY "purchasedAt" DESC`,
+      [restaurantId]
+    );
     return res.rows;
   }
 };

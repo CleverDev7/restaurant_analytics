@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const createOrderSchema = z.object({
-  restaurantId: z.string().min(1),
+  restaurantId: z.string().min(1).optional(),
   staffId: z.string().optional(),
   customerId: z.string().optional(),
   serviceType: z.enum(["DINE_IN", "TAKEOUT", "DELIVERY"]).optional(),
@@ -18,7 +18,7 @@ export const createOrderSchema = z.object({
 });
 
 export const createMenuItemSchema = z.object({
-  restaurantId: z.string().min(1),
+  restaurantId: z.string().min(1).optional(),
   name: z.string().min(1),
   category: z.string().min(1),
   price: z.number().positive(),
@@ -27,7 +27,7 @@ export const createMenuItemSchema = z.object({
 });
 
 export const createInventorySchema = z.object({
-  restaurantId: z.string().min(1),
+  restaurantId: z.string().min(1).optional(),
   itemName: z.string().min(1),
   quantity: z.number().positive(),
   unitCost: z.number().nonnegative(),

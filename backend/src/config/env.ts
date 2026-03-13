@@ -6,7 +6,8 @@ dotenv.config();
 export const env = {
   port: parseInt(process.env.PORT || "4000", 10),
   databaseUrl: process.env.DATABASE_URL || "",
-  nodeEnv: process.env.NODE_ENV || "development"
+  nodeEnv: process.env.NODE_ENV || "development",
+  jwtSecret: process.env.JWT_SECRET || "dev-secret-change-me"
 };
 
 if (!env.databaseUrl) {
