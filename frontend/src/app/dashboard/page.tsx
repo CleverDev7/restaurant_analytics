@@ -1,6 +1,7 @@
 ﻿import { ChartPanel } from "@/components/ChartPanel";
 import { DataTable } from "@/components/DataTable";
 import { StatsCard } from "@/components/StatsCard";
+import { ExportButtons } from "@/components/ExportButtons";
 import {
   fetchAnalyticsOverview,
   fetchBestItems,
@@ -25,12 +26,24 @@ export default async function DashboardPage() {
 
   return (
     <main className="container-page flex flex-col gap-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
           <p className="text-xs uppercase tracking-[0.35em] text-slate-400">Daily snapshot</p>
           <h1 className="text-3xl font-semibold text-white">{overview.date} – Profitability Control</h1>
         </div>
-        <span className="rounded-full border border-green-400/60 px-3 py-1 text-xs text-green-200">Live</span>
+        <div className="flex items-center gap-3">
+          <ExportButtons
+            date={overview.date}
+            revenue={overview.sales}
+            orders={ordersToday}
+            avgTicket={overview.avgTicket}
+            profitMargin={overview.profitMargin}
+            bestSellers={bestItems}
+            staffPerformance={overview.staffPerformance}
+            customerPatterns={overview.customerPatterns}
+          />
+          <span className="rounded-full border border-green-400/60 px-3 py-1 text-xs text-green-200">Live</span>
+        </div>
       </div>
 
       <section className="grid-auto">
