@@ -7,6 +7,7 @@ import { router as analyticsRouter } from "./routes/analytics";
 import { router as ordersRouter } from "./routes/orders";
 import { router as menuItemsRouter } from "./routes/menuItems";
 import { router as inventoryRouter } from "./routes/inventory";
+import { startSchedulers } from "./jobs/scheduler";
 
 export function createServer() {
   const app = express();
@@ -36,6 +37,7 @@ export function createServer() {
 
 export function startServer() {
   const app = createServer();
+  startSchedulers();
   app.listen(env.port, () => {
     console.log(`API listening on port ${env.port}`);
   });
